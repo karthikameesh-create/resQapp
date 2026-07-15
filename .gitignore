@@ -1,0 +1,46 @@
+# ===========================
+# Python
+# ===========================
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual Environment
+.venv/
+
+# Environment
+.env
+*.env
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build
+build/
+dist/
+
+# SQLite
+*.sqlite3
+
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+# Node
+node_modules/
+
+# Logs
+*.log
