@@ -16,5 +16,13 @@ class UserResponse(BaseModel):
     role: str
     is_active: bool
     created_at: datetime
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
 
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    
     model_config = ConfigDict(from_attributes=True)
