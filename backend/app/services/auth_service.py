@@ -6,6 +6,7 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
+from app.models.enums import UserRole
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import LoginRequest, UserCreate
@@ -25,7 +26,7 @@ class AuthService:
             full_name=user_data.full_name,
             email=user_data.email,
             password_hash=hash_password(user_data.password),
-            role="citizen",
+            role=UserRole.CITIZEN,
             is_active=True,
         )
 

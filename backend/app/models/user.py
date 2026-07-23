@@ -1,9 +1,10 @@
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+from app.models.enums import UserRole
 
 
 class User(Base):
@@ -25,9 +26,11 @@ class User(Base):
         nullable=False,
     )
 
-    role: Mapped[str] = mapped_column(
+    role: Mapped[UserRole] = mapped_column(
         String(20),
-        default="citizen",
+        nullable=False,
+        default=UserRole.CITIZEN,
+        server_default=UserRole.CITIZEN.value,
     )
 
     is_active: Mapped[bool] = mapped_column(
@@ -44,4 +47,10 @@ class User(Base):
         DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
+    )
+
+    incidents = relationship(
+        "Incident",
+        back_populates="reporter",
+        cascade="all, delete-orphan",
     )

@@ -6,6 +6,10 @@ from sqlalchemy import engine_from_config, pool
 from app.core.config import settings
 from app.db.base import Base
 
+# Import all models so SQLAlchemy registers them
+from app.models.user import User
+from app.models.incident import Incident
+
 config = context.config
 
 if config.config_file_name is not None:
