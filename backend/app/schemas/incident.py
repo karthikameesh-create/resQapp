@@ -10,6 +10,18 @@ class IncidentCreate(BaseModel):
     latitude: float
     longitude: float
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "title": "Road Accident",
+                "description": "A bus collided with a truck near Mangalore. Five passengers are injured and one is unconscious.",
+                "incident_type": "Traffic Accident",
+                "latitude": 12.9141,
+                "longitude": 74.8560,
+            }
+        }
+    )
+
 
 class IncidentResponse(BaseModel):
     id: int
@@ -29,7 +41,31 @@ class IncidentResponse(BaseModel):
     reporter_id: int
     created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "example": {
+                "id": 7,
+                "title": "Road Accident",
+                "description": "A bus collided with a truck near Mangalore. Five passengers are injured and one is unconscious.",
+                "incident_type": "Traffic Accident",
+                "status": "reported",
+                "severity": "medium",
+                "predicted_severity": "High",
+                "predicted_category": "Traffic Accident",
+                "ai_summary": "A collision between a bus and a truck near Mangalore has resulted in five injuries and one unconscious individual.",
+                "recommended_response": [
+                    "Dispatch emergency medical services immediately.",
+                    "Notify local police.",
+                    "Alert nearby hospitals.",
+                ],
+                "latitude": 12.9141,
+                "longitude": 74.8560,
+                "reporter_id": 1,
+                "created_at": "2026-07-25T12:51:25.609453Z",
+            }
+        },
+    )
 
 
 class IncidentUpdate(BaseModel):

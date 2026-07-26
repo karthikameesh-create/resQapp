@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
@@ -14,7 +14,19 @@ from app.services.incident_service import IncidentService
 router = APIRouter(prefix="/incidents", tags=["Incidents"])
 
 
-@router.post("", response_model=IncidentResponse)
+@router.post(
+    "",
+    response_model=IncidentResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create Incident",
+    response_description="Incident created successfully",
+    responses={
+        201: {"description": "Incident created successfully"},
+        401: {"description": "Authentication required"},
+        403: {"description": "Permission denied"},
+        500: {"description": "Internal server error"},
+    },
+)
 def create_incident(
     incident: IncidentCreate,
     db: Session = Depends(get_db),
@@ -52,13 +64,7 @@ def get_incident(
     db: Session = Depends(get_db),
 ):
     service = IncidentService(db)
-
-    incident = service.get_incident(incident_id)
-
-    if incident is None:
-        raise HTTPException(status_code=404, detail="Incident not found")
-
-    return incident
+    return service.get_incident(incident_id)
 
 
 @router.put("/{incident_id}", response_model=IncidentResponse)

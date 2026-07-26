@@ -1,10 +1,16 @@
-from fastapi import HTTPException
+import logging
 
 from app.ai.service import AIService
+from app.core.exceptions import (
+    ForbiddenException,
+    NotFoundException,
+)
 from app.models.incident import Incident
 from app.models.user import User
 from app.repositories.incident_repository import IncidentRepository
 from app.schemas.incident import IncidentCreate, IncidentUpdate
+
+logger = logging.getLogger(__name__)
 
 
 class IncidentService:
@@ -16,7 +22,11 @@ class IncidentService:
         incident_data: IncidentCreate,
         current_user: User,
     ):
-        # Create incident
+        logger.info(
+            "Creating incident for user_id=%s",
+            current_user.id,
+        )
+
         incident = Incident(
             title=incident_data.title,
             description=incident_data.description,
@@ -26,19 +36,34 @@ class IncidentService:
             reporter_id=current_user.id,
         )
 
-        # Save incident first
         incident = self.repo.create(incident)
 
-        # Analyze using Gemini
-        analysis = AIService.analyze(incident.description)
+        logger.info(
+            "Incident created with id=%s",
+            incident.id,
+        )
 
-        # Store AI analysis
+        logger.info(
+            "Starting AI analysis for incident=%s",
+            incident.id,
+        )
+
+        analysis = AIService.analyze(
+            incident.description
+        )
+
+        logger.info(
+            "AI analysis completed for incident=%s",
+            incident.id,
+        )
+
         incident.predicted_severity = analysis.predicted_severity
         incident.predicted_category = analysis.predicted_category
         incident.ai_summary = analysis.summary
-        incident.recommended_response = analysis.recommended_response
+        incident.recommended_response = (
+            analysis.recommended_response
+        )
 
-        # Save AI fields
         incident = self.repo.update(incident)
 
         return incident
@@ -52,6 +77,8 @@ class IncidentService:
         incident_type: str | None = None,
         search: str | None = None,
     ):
+        logger.info("Fetching incidents")
+
         return self.repo.get_all(
             skip=skip,
             limit=limit,
@@ -62,7 +89,23 @@ class IncidentService:
         )
 
     def get_incident(self, incident_id: int):
-        return self.repo.get_by_id(incident_id)
+        logger.info(
+            "Fetching incident=%s",
+            incident_id,
+        )
+
+        incident = self.repo.get_by_id(incident_id)
+
+        if incident is None:
+            logger.error(
+                "Incident %s not found",
+                incident_id,
+            )
+            raise NotFoundException(
+                "Incident not found"
+            )
+
+        return incident
 
     def update_incident(
         self,
@@ -70,50 +113,100 @@ class IncidentService:
         incident_data: IncidentUpdate,
         current_user: User,
     ):
-        incident = self.repo.get_by_id(incident_id)
+        logger.info(
+            "Updating incident=%s",
+            incident_id,
+        )
+
+        incident = self.repo.get_by_id(
+            incident_id
+        )
 
         if incident is None:
-            raise HTTPException(
-                status_code=404,
-                detail="Incident not found",
+            logger.error(
+                "Incident %s not found",
+                incident_id,
+            )
+            raise NotFoundException(
+                "Incident not found"
             )
 
         if (
             incident.reporter_id != current_user.id
             and current_user.role != "admin"
         ):
-            raise HTTPException(
-                status_code=403,
-                detail="Not authorized to update this incident",
+            logger.warning(
+                "Unauthorized update by user=%s on incident=%s",
+                current_user.id,
+                incident_id,
             )
 
-        update_data = incident_data.model_dump(exclude_unset=True)
+            raise ForbiddenException(
+                "Not authorized to update this incident"
+            )
+
+        update_data = incident_data.model_dump(
+            exclude_unset=True
+        )
 
         for field, value in update_data.items():
-            setattr(incident, field, value)
+            setattr(
+                incident,
+                field,
+                value,
+            )
 
-        return self.repo.update(incident)
+        logger.info(
+            "Incident updated=%s",
+            incident_id,
+        )
+
+        return self.repo.update(
+            incident
+        )
 
     def delete_incident(
         self,
         incident_id: int,
         current_user: User,
     ):
-        incident = self.repo.get_by_id(incident_id)
+        logger.info(
+            "Deleting incident=%s",
+            incident_id,
+        )
+
+        incident = self.repo.get_by_id(
+            incident_id
+        )
 
         if incident is None:
-            raise HTTPException(
-                status_code=404,
-                detail="Incident not found",
+            logger.error(
+                "Incident %s not found",
+                incident_id,
+            )
+            raise NotFoundException(
+                "Incident not found"
             )
 
         if (
             incident.reporter_id != current_user.id
             and current_user.role != "admin"
         ):
-            raise HTTPException(
-                status_code=403,
-                detail="Not authorized to delete this incident",
+            logger.warning(
+                "Unauthorized delete by user=%s on incident=%s",
+                current_user.id,
+                incident_id,
             )
 
-        self.repo.delete(incident)
+            raise ForbiddenException(
+                "Not authorized to delete this incident"
+            )
+
+        self.repo.delete(
+            incident
+        )
+
+        logger.info(
+            "Incident deleted=%s",
+            incident_id,
+        )
