@@ -9,7 +9,7 @@ from app.db.base import Base
 # Import all models so SQLAlchemy registers them
 from app.models.user import User
 from app.models.incident import Incident
-
+from app.models.incident_history import IncidentHistory
 config = context.config
 
 if config.config_file_name is not None:

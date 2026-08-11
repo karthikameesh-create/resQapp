@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
+from app.core.rate_limiter import limiter
 from app.db.session import get_db
 from app.schemas.analytics import (
     DashboardResponse,
@@ -15,8 +16,15 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
 @router.get(
     "/dashboard",
     response_model=DashboardResponse,
+    responses={
+        429: {"description": "Rate limit exceeded"},
+    },
 )
-def dashboard(db: Session = Depends(get_db)):
+@limiter.limit("60/minute")
+def dashboard(
+    request: Request,
+    db: Session = Depends(get_db),
+):
     service = AnalyticsService(db)
     return service.get_dashboard()
 
@@ -24,8 +32,15 @@ def dashboard(db: Session = Depends(get_db)):
 @router.get(
     "/trends",
     response_model=TrendResponse,
+    responses={
+        429: {"description": "Rate limit exceeded"},
+    },
 )
-def trends(db: Session = Depends(get_db)):
+@limiter.limit("60/minute")
+def trends(
+    request: Request,
+    db: Session = Depends(get_db),
+):
     service = AnalyticsService(db)
 
     return {
@@ -36,8 +51,15 @@ def trends(db: Session = Depends(get_db)):
 @router.get(
     "/heatmap",
     response_model=HeatmapResponse,
+    responses={
+        429: {"description": "Rate limit exceeded"},
+    },
 )
-def heatmap(db: Session = Depends(get_db)):
+@limiter.limit("60/minute")
+def heatmap(
+    request: Request,
+    db: Session = Depends(get_db),
+):
     service = AnalyticsService(db)
 
     return {

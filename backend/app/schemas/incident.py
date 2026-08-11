@@ -35,6 +35,7 @@ class IncidentResponse(BaseModel):
     predicted_category: str | None = None
     ai_summary: str | None = None
     recommended_response: list[str] | None = None
+    ai_status: str
 
     latitude: float
     longitude: float
@@ -59,6 +60,7 @@ class IncidentResponse(BaseModel):
                     "Notify local police.",
                     "Alert nearby hospitals.",
                 ],
+                "ai_status": "completed",
                 "latitude": 12.9141,
                 "longitude": 74.8560,
                 "reporter_id": 1,

@@ -18,14 +18,19 @@ Return ONLY valid JSON.
 Required JSON format:
 
 {{
-    "predicted_severity": "",
-    "predicted_category": "",
-    "summary": "",
-    "recommended_response": []
+"predicted_severity": "",
+"predicted_category": "",
+"severity_confidence": 0.0,
+"category_confidence": 0.0,
+"summary": "",
+"recommended_response": []
 }}
 
-Incident:
-{description}
+Confidence values must be numbers between 0.0 and 1.0.
+severity_confidence represents your confidence in the predicted severity.
+category_confidence represents your confidence in the predicted category.
+
+Incident:{description}
 """
 
     response = client.models.generate_content(

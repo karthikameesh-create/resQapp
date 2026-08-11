@@ -35,8 +35,18 @@ class Incident(Base):
         nullable=True,
     )
 
+    severity_confidence: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+
     predicted_category: Mapped[str | None] = mapped_column(
         String(100),
+        nullable=True,
+    )
+
+    category_confidence: Mapped[float | None] = mapped_column(
+        Float,
         nullable=True,
     )
 
@@ -48,6 +58,12 @@ class Incident(Base):
     recommended_response: Mapped[list | None] = mapped_column(
         JSON,
         nullable=True,
+    )
+
+    ai_status: Mapped[str] = mapped_column(
+        String(20),
+        default="pending",
+        nullable=False,
     )
 
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
@@ -70,4 +86,11 @@ class Incident(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    # Relationships
     reporter = relationship("User", back_populates="incidents")
+
+    history = relationship(
+        "IncidentHistory",
+        back_populates="incident",
+        cascade="all, delete-orphan",
+    )

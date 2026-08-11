@@ -92,7 +92,11 @@ class AnalyticsRepository:
                 "severity": severity or "Unknown",
                 "category": category or "Unknown",
                 "status": status,
-                "created_at": created_at,
+                "created_at": (
+                    created_at.isoformat()
+                    if created_at
+                    else None
+                ),
             }
             for (
                 incident_id,

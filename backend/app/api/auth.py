@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
+from app.core.rate_limiter import limiter
 from app.db.dependencies import get_db
 from app.schemas.user import (
     LoginRequest,
@@ -21,8 +22,14 @@ router = APIRouter(
     "/register",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
+    responses={
+        400: {"description": "Bad Request / Email already exists"},
+        429: {"description": "Rate limit exceeded"},
+    },
 )
+@limiter.limit("5/minute")
 def register(
+    request: Request,
     user: UserCreate,
     db: Session = Depends(get_db),
 ):
@@ -40,8 +47,14 @@ def register(
 @router.post(
     "/login",
     response_model=TokenResponse,
+    responses={
+        401: {"description": "Invalid credentials"},
+        429: {"description": "Rate limit exceeded"},
+    },
 )
+@limiter.limit("10/minute")
 def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):

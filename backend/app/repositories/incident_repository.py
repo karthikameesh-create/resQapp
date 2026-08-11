@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.models.incident import Incident
+from app.models.incident_history import IncidentHistory
 
 
 class IncidentRepository:
@@ -63,3 +64,11 @@ class IncidentRepository:
     def delete(self, incident: Incident) -> None:
         self.db.delete(incident)
         self.db.commit()
+
+    def get_history(self, incident_id: int):
+        return (
+            self.db.query(IncidentHistory)
+            .filter(IncidentHistory.incident_id == incident_id)
+            .order_by(IncidentHistory.created_at.asc())
+            .all()
+        )
