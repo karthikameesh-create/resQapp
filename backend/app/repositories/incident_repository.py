@@ -20,6 +20,7 @@ class IncidentRepository:
         limit: int = 10,
         status: str | None = None,
         severity: str | None = None,
+        priority: str | None = None,
         incident_type: str | None = None,
         search: str | None = None,
     ):
@@ -30,6 +31,9 @@ class IncidentRepository:
 
         if severity:
             query = query.filter(Incident.severity == severity)
+
+        if priority:
+            query = query.filter(Incident.priority == priority)
 
         if incident_type:
             query = query.filter(

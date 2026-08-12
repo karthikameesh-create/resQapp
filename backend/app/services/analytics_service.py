@@ -13,11 +13,30 @@ class AnalyticsService:
         if cached_data:
             return cached_data
 
+        severity_confidence = (
+            self.repo.average_severity_confidence()
+        )
+        category_confidence = (
+            self.repo.average_category_confidence()
+        )
+
         dashboard = {
             "total_incidents": self.repo.total_incidents(),
             "status_distribution": self.repo.incidents_by_status(),
             "severity_distribution": self.repo.incidents_by_severity(),
             "category_distribution": self.repo.incidents_by_category(),
+            "priority_distribution": self.repo.incidents_by_priority(),
+            "ai_status_distribution": self.repo.incidents_by_ai_status(),
+            "average_severity_confidence": (
+                float(severity_confidence)
+                if severity_confidence is not None
+                else None
+            ),
+            "average_category_confidence": (
+                float(category_confidence)
+                if category_confidence is not None
+                else None
+            ),
         }
 
         CacheService.set(

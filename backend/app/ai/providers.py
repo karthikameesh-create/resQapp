@@ -4,6 +4,7 @@ from google import genai
 
 from app.core.config import settings
 
+
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 
@@ -13,37 +14,42 @@ You are an AI emergency response assistant.
 
 Analyze the following emergency incident.
 
-Return ONLY valid JSON.
+Return ONLY a valid JSON object.
 
 Required JSON format:
 
 {{
-"predicted_severity": "",
-"predicted_category": "",
-"severity_confidence": 0.0,
-"category_confidence": 0.0,
-"summary": "",
-"recommended_response": []
+    "predicted_severity": "",
+    "predicted_category": "",
+    "severity_confidence": 0.0,
+    "category_confidence": 0.0,
+    "summary": "",
+    "recommended_response": []
 }}
 
-Confidence values must be numbers between 0.0 and 1.0.
-severity_confidence represents your confidence in the predicted severity.
-category_confidence represents your confidence in the predicted category.
+Rules:
+- predicted_severity must be one of: Low, Medium, High, Critical.
+- predicted_category should describe the incident category.
+- severity_confidence must be a number between 0.0 and 1.0.
+- category_confidence must be a number between 0.0 and 1.0.
+- summary must briefly explain the incident.
+- recommended_response must be a JSON array of emergency response actions.
+- Do not use Markdown.
+- Do not use code fences.
+- Do not include any text outside the JSON object.
 
-Incident:{description}
+Incident:
+{description}
 """
 
     response = client.models.generate_content(
         model=settings.GEMINI_MODEL,
         contents=prompt,
+        config={
+            "response_mime_type": "application/json",
+        },
     )
 
     text = response.text.strip()
-
-    # Remove markdown code fences if Gemini returns them
-    if text.startswith("```json"):
-        text = text.replace("```json", "").replace("```", "").strip()
-    elif text.startswith("```"):
-        text = text.replace("```", "").strip()
 
     return json.loads(text)

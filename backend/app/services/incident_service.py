@@ -101,6 +101,7 @@ class IncidentService:
         incident_id: int,
         incident_data: IncidentUpdate,
         current_user: User,
+        background_tasks=None,
     ):
         logger.info(
             "Updating incident=%s",
@@ -132,6 +133,15 @@ class IncidentService:
 
         update_data = incident_data.model_dump(exclude_unset=True)
 
+        # Fields that can change the AI analysis
+        ai_relevant_fields = {
+            "description",
+            "incident_type",
+            "severity",
+        }
+
+        ai_reanalysis_required = False
+
         for field, value in update_data.items():
             old_value = getattr(incident, field)
 
@@ -140,18 +150,44 @@ class IncidentService:
                     incident_id=incident.id,
                     action="updated",
                     field=field,
-                    old_value=str(old_value) if old_value is not None else None,
-                    new_value=str(value) if value is not None else None,
+                    old_value=(
+                        str(old_value)
+                        if old_value is not None
+                        else None
+                    ),
+                    new_value=(
+                        str(value)
+                        if value is not None
+                        else None
+                    ),
                     changed_by=current_user.id,
                 )
 
                 self.repo.db.add(history)
 
-                setattr(
-                    incident,
-                    field,
-                    value,
-                )
+                setattr(incident, field, value)
+
+                if field in ai_relevant_fields:
+                    ai_reanalysis_required = True
+
+        # If an AI-relevant field changed, mark the analysis as pending
+        if ai_reanalysis_required:
+            incident.ai_status = "pending"
+
+            incident.predicted_severity = None
+            incident.severity_confidence = None
+            incident.predicted_category = None
+            incident.category_confidence = None
+            incident.ai_summary = None
+            incident.recommended_response = None
+
+            # Reset priority until the new AI analysis completes
+            incident.priority = "low"
+
+            logger.info(
+                "AI re-analysis required for incident=%s",
+                incident_id,
+            )
 
         logger.info(
             "Incident updated=%s",
@@ -163,6 +199,13 @@ class IncidentService:
         CacheService.delete("dashboard")
         CacheService.delete("trends")
         CacheService.delete("heatmap")
+
+        # Start AI analysis after the database update
+        if ai_reanalysis_required and background_tasks is not None:
+            background_tasks.add_task(
+                analyze_incident_background,
+                incident.id,
+            )
 
         return incident
 

@@ -29,6 +29,12 @@ class Incident(Base):
         nullable=False,
     )
 
+    priority: Mapped[str] = mapped_column(
+        String(20),
+        default="medium",
+        nullable=False,
+    )
+
     # AI Analysis
     predicted_severity: Mapped[str | None] = mapped_column(
         String(20),

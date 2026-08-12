@@ -5,6 +5,7 @@ from app.ai.service import AIService
 from app.db.session import SessionLocal
 from app.models.incident import Incident
 from app.services.cache_service import CacheService
+from app.services.priority_service import PriorityService
 
 logger = logging.getLogger(__name__)
 
@@ -66,12 +67,12 @@ def analyze_incident_background(
                     analysis.predicted_severity
                 )
 
-                incident.predicted_category = (
-                    analysis.predicted_category
-                )
-
                 incident.severity_confidence = (
                     analysis.severity_confidence
+                )
+
+                incident.predicted_category = (
+                    analysis.predicted_category
                 )
 
                 incident.category_confidence = (
@@ -84,6 +85,14 @@ def analyze_incident_background(
 
                 incident.recommended_response = (
                     analysis.recommended_response
+                )
+
+                incident.priority = PriorityService.calculate_priority(
+                    incident.severity,
+                    analysis.predicted_severity,
+                    analysis.severity_confidence,
+                    analysis.predicted_category,
+                    incident.description,
                 )
 
                 incident.ai_status = "completed"

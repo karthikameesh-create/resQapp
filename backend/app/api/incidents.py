@@ -171,6 +171,7 @@ def update_incident(
     request: Request,
     incident_id: int,
     incident_data: IncidentUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -180,6 +181,7 @@ def update_incident(
         incident_id,
         incident_data,
         current_user,
+        background_tasks,
     )
 
 

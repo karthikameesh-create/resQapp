@@ -30,9 +30,12 @@ class IncidentResponse(BaseModel):
     incident_type: str
     status: str
     severity: str
+    priority: str
 
     predicted_severity: str | None = None
+    severity_confidence: float | None = None
     predicted_category: str | None = None
+    category_confidence: float | None = None
     ai_summary: str | None = None
     recommended_response: list[str] | None = None
     ai_status: str
@@ -52,8 +55,11 @@ class IncidentResponse(BaseModel):
                 "incident_type": "Traffic Accident",
                 "status": "reported",
                 "severity": "medium",
+                "priority": "high",
                 "predicted_severity": "High",
+                "severity_confidence": 0.95,
                 "predicted_category": "Traffic Accident",
+                "category_confidence": 1.0,
                 "ai_summary": "A collision between a bus and a truck near Mangalore has resulted in five injuries and one unconscious individual.",
                 "recommended_response": [
                     "Dispatch emergency medical services immediately.",
