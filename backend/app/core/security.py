@@ -28,8 +28,12 @@ def create_access_token(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
+    issued_at = datetime.now(timezone.utc)
+
     payload: dict[str, Any] = {
         "sub": subject,
+        "type": "access",
+        "iat": issued_at,
         "exp": expire,
     }
 
@@ -48,10 +52,13 @@ def decode_access_token(token: str) -> str:
             algorithms=[settings.ALGORITHM],
         )
 
+        if payload.get("type") != "access":
+            raise JWTError("Invalid token type")
+
         email = payload.get("sub")
 
-        if email is None:
-            raise JWTError()
+        if not email or not isinstance(email, str):
+            raise JWTError("Invalid token subject")
 
         return email
 

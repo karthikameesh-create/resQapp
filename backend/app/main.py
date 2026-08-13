@@ -6,6 +6,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.api import auth, incidents, users
 from app.api.ai import router as ai_router
 from app.api.analytics import router as analytics_router
+from app.api.notifications import router as notifications_router
 from app.core.config import settings
 from app.core.exception_handlers import (
     app_exception_handler,
@@ -56,6 +57,10 @@ app.include_router(
 )
 app.include_router(
     analytics_router,
+    prefix=settings.API_PREFIX,
+)
+app.include_router(
+    notifications_router,
     prefix=settings.API_PREFIX,
 )
 

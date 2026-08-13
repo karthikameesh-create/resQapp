@@ -1,4 +1,5 @@
 from fastapi import Depends, HTTPException, status
+from jose import JWTError
 from sqlalchemy.orm import Session
 
 from app.core.oauth2 import oauth2_scheme
@@ -13,11 +14,11 @@ def get_current_user(
 ):
     try:
         email = decode_access_token(token)
-
-    except Exception:
+    except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     repo = UserRepository(db)
@@ -27,7 +28,14 @@ def get_current_user(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive",
         )
 
     return user

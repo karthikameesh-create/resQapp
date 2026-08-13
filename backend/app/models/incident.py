@@ -100,3 +100,8 @@ class Incident(Base):
         back_populates="incident",
         cascade="all, delete-orphan",
     )
+
+    notifications = relationship(
+        "Notification",
+        back_populates="incident",
+    )

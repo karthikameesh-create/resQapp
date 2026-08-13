@@ -5,6 +5,7 @@ from app.ai.service import AIService
 from app.db.session import SessionLocal
 from app.models.incident import Incident
 from app.services.cache_service import CacheService
+from app.services.notification_service import NotificationService
 from app.services.priority_service import PriorityService
 
 logger = logging.getLogger(__name__)
@@ -93,6 +94,20 @@ def analyze_incident_background(
                     analysis.severity_confidence,
                     analysis.predicted_category,
                     incident.description,
+                )
+
+                notification_service = NotificationService(db)
+
+                notification_count = (
+                    notification_service.notify_high_priority_incident(
+                        incident
+                    )
+                )
+
+                logger.info(
+                    "Created %s notification(s) for incident_id=%s",
+                    notification_count,
+                    incident_id,
                 )
 
                 incident.ai_status = "completed"

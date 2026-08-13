@@ -1,14 +1,29 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class IncidentCreate(BaseModel):
-    title: str
-    description: str
-    incident_type: str
-    latitude: float
-    longitude: float
+    title: str = Field(
+        min_length=3,
+        max_length=200,
+    )
+    description: str = Field(
+        min_length=5,
+        max_length=5000,
+    )
+    incident_type: str = Field(
+        min_length=2,
+        max_length=100,
+    )
+    latitude: float = Field(
+        ge=-90,
+        le=90,
+    )
+    longitude: float = Field(
+        ge=-180,
+        le=180,
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -77,10 +92,36 @@ class IncidentResponse(BaseModel):
 
 
 class IncidentUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None
-    incident_type: str | None = None
-    status: str | None = None
-    severity: str | None = None
-    latitude: float | None = None
-    longitude: float | None = None
+    title: str | None = Field(
+        default=None,
+        min_length=3,
+        max_length=200,
+    )
+    description: str | None = Field(
+        default=None,
+        min_length=5,
+        max_length=5000,
+    )
+    incident_type: str | None = Field(
+        default=None,
+        min_length=2,
+        max_length=100,
+    )
+    status: str | None = Field(
+        default=None,
+        max_length=30,
+    )
+    severity: str | None = Field(
+        default=None,
+        max_length=30,
+    )
+    latitude: float | None = Field(
+        default=None,
+        ge=-90,
+        le=90,
+    )
+    longitude: float | None = Field(
+        default=None,
+        ge=-180,
+        le=180,
+    )

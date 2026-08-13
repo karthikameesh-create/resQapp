@@ -2,6 +2,7 @@ from fastapi import (
     APIRouter,
     BackgroundTasks,
     Depends,
+    Query,
     Request,
     status,
 )
@@ -61,19 +62,31 @@ def create_incident(
     "",
     response_model=list[IncidentResponse],
     responses={
+        401: {"description": "Authentication required"},
         429: {"description": "Rate limit exceeded"},
     },
 )
 @limiter.limit("100/minute")
 def get_all_incidents(
     request: Request,
-    skip: int = 0,
-    limit: int = 10,
+    skip: int = Query(
+        default=0,
+        ge=0,
+    ),
+    limit: int = Query(
+        default=10,
+        ge=1,
+        le=100,
+    ),
     status: str | None = None,
     severity: str | None = None,
     incident_type: str | None = None,
-    search: str | None = None,
+    search: str | None = Query(
+        default=None,
+        max_length=200,
+    ),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     service = IncidentService(db)
 
@@ -123,6 +136,7 @@ def retry_ai_analysis(
     "/{incident_id}",
     response_model=IncidentResponse,
     responses={
+        401: {"description": "Authentication required"},
         404: {"description": "Incident not found"},
         429: {"description": "Rate limit exceeded"},
     },
@@ -132,6 +146,7 @@ def get_incident(
     request: Request,
     incident_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     service = IncidentService(db)
     return service.get_incident(incident_id)
