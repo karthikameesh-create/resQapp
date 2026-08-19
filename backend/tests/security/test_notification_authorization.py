@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi import HTTPException
 
 from app.services.notification_service import NotificationService
 
@@ -17,8 +18,6 @@ def test_user_can_only_mark_own_notification_as_read():
     ) = None
 
     service = NotificationService(db)
-
-    from fastapi import HTTPException
 
     with pytest.raises(HTTPException) as exc:
         service.mark_as_read(
@@ -90,3 +89,34 @@ def test_unread_count_is_user_specific():
     filter_call = db.query.return_value.filter.call_args
 
     assert filter_call is not None
+
+
+def test_mark_all_as_read_only_affects_current_user():
+    db = MagicMock()
+
+    user_one_notification = SimpleNamespace(
+        id=1,
+        user_id=1,
+        is_read=False,
+    )
+
+    user_two_notification = SimpleNamespace(
+        id=2,
+        user_id=2,
+        is_read=False,
+    )
+
+    # Service should receive only user 1's rows.
+    (
+        db.query.return_value
+        .filter.return_value
+        .all.return_value
+    ) = [user_one_notification]
+
+    service = NotificationService(db)
+
+    result = service.mark_all_as_read(user_id=1)
+
+    assert result == 1
+    assert user_one_notification.is_read is True
+    assert user_two_notification.is_read is False
