@@ -56,49 +56,43 @@ export default function IncidentDetails() {
   const [retrying, setRetrying] =
     useState(false);
 
-  async function loadIncident() {
-    if (!incidentId) {
-      setError("Invalid incident ID.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const data = await getIncident(
-        Number(incidentId)
-      );
-
-      setIncident(data);
-      setError("");
-    } catch {
-      setError(
-        "Unable to load this incident."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
+    async function loadIncident() {
+      if (!incidentId) {
+        setError("Invalid incident ID.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        const data = await getIncident(
+          Number(incidentId)
+        );
+
+        setIncident(data);
+        setError("");
+      } catch {
+        setError(
+          "Unable to load this incident."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
     loadIncident();
   }, [incidentId]);
 
-  /*
-   * Poll the backend while AI analysis is still
-   * pending or processing.
-   *
-   * We stop polling automatically when the backend
-   * reaches completed or failed.
-   */
-  useEffect(() => {
-    if (!incident) {
-      return;
-    }
+  const incidentIdForPolling = incident?.id;
+  const aiStatusForPolling = incident?.ai_status;
 
+  useEffect(() => {
     if (
-      incident.ai_status !== "pending" &&
-      incident.ai_status !== "processing"
+      !incidentIdForPolling ||
+      (aiStatusForPolling !== "pending" &&
+        aiStatusForPolling !== "processing")
     ) {
       return;
     }
@@ -107,7 +101,7 @@ export default function IncidentDetails() {
       async () => {
         try {
           const updated = await getIncident(
-            incident.id
+            incidentIdForPolling
           );
 
           setIncident(updated);
@@ -130,8 +124,8 @@ export default function IncidentDetails() {
       window.clearInterval(interval);
     };
   }, [
-    incident?.id,
-    incident?.ai_status,
+    incidentIdForPolling,
+    aiStatusForPolling,
   ]);
 
   async function retryAiAnalysis() {
@@ -184,7 +178,18 @@ export default function IncidentDetails() {
       <ErrorState
         title="Incident unavailable"
         message={error}
-        onRetry={loadIncident}
+        onRetry={() => {
+          if (incidentId) {
+            setLoading(true);
+            getIncident(Number(incidentId))
+              .then((data) => {
+                setIncident(data);
+                setError("");
+              })
+              .catch(() => setError("Unable to load this incident."))
+              .finally(() => setLoading(false));
+          }
+        }}
       />
     );
   }

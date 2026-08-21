@@ -13,7 +13,7 @@ import RoleGuard from "./components/RoleGuard";
 import AppShell from "./components/navigation/AppShell";
 import LoadingState from "./components/ui/LoadingState";
 
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "./context/useAuth";
 
 const Analytics = lazy(
   () => import("./pages/Analytics")

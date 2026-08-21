@@ -20,10 +20,10 @@ class CacheService:
         value,
         expire: int = 300,
     ):
-        redis_client.setex(
+        redis_client.set(
             key,
-            expire,
             json.dumps(value),
+            ex=expire,
         )
 
     @staticmethod

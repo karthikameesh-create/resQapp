@@ -62,7 +62,7 @@ export default function CreateIncident() {
       navigate(
         `/incidents/${incident.id}`
       );
-    } catch (err) {
+    } catch {
       setError(
         "Unable to create the incident. Please check your information and try again."
       );
